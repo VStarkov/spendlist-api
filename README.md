@@ -1,6 +1,8 @@
 ### Spendlist-api
 
-This Node api for the Spendlist home finance tracker.<br />
+This is the api for the Spendlist home finance tracker.<br />
+Based on Node.js, Express and Mongoose for MongoDB object modeling.
+
 To run the app:
 ```
 # Install dependencies:
