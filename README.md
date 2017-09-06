@@ -6,7 +6,7 @@ Based on Node.js, Express and Mongoose for MongoDB object modeling.
 To run the app:
 ```
 # Install dependencies:
-yarn add
+yarn install
 
 # Start application in dev mode:
 yarn start

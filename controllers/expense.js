@@ -31,7 +31,7 @@ exports.getExpenses = (req, res, next) => {
         .lean()
         .exec((err, expenses) => {
             if (err) {
-                res.status(400).send({ msg: 'Can not get expenses' });
+                res.status(400).send({ error: { msg: 'Can not get expenses' } });
 
                 return next(err);
             }

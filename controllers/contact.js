@@ -13,7 +13,7 @@ exports.postContact = (req, res) => {
     const errors = req.validationErrors();
 
     if (errors) {
-        res.status(400).send(errors);
+        res.status(400).send({ error: errors });
     }
 
     const mailOptions = {
