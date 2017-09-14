@@ -1,5 +1,5 @@
 const Expense = require('../models/Expense');
-require('../models/Currency');
+const Currency = require('../models/Currency');
 
 const mongoose = require('mongoose');
 const moment = require('moment');
@@ -36,8 +36,17 @@ exports.getExpenses = (req, res, next) => {
                 return next(err);
             }
 
-            res.status(200).json({
-                expenses: formatExpenses(expenses, req.user.id)
+            Currency.find((err, currencies) => {
+                if (err) {
+                    res.status(400).send({ error: { msg: 'Can not get currencies' } });
+
+                    return next(err);
+                }
+
+                return res.status(200).json({
+                    expenses: formatExpenses(expenses, req.user.id),
+                    currencies
+                });
             });
         });
 };
@@ -46,7 +55,7 @@ exports.getExpenses = (req, res, next) => {
 * POST /expense/add
 * Add expense
 */
-exports.postExpense = (req, res, next) => {
+exports.postExpense = (req, res) => {
     req.assert('amount', 'Amount can not be blank').notEmpty();
     req.assert('date', 'Date can not be blank').notEmpty();
     req.assert('category', 'Category can not be blank').notEmpty();
@@ -55,8 +64,7 @@ exports.postExpense = (req, res, next) => {
     const errors = req.validationErrors();
 
     if (errors) {
-        req.flash('errors', errors);
-        return res.redirect('/expenses');
+        return res.status(400).json({ error: errors });
     }
 
     const expense = new Expense({
@@ -70,9 +78,9 @@ exports.postExpense = (req, res, next) => {
 
     expense.save((err) => {
         if (err) {
-            return next(err);
+            res.status(500).json({ error: err });
         }
 
-        res.redirect('/expenses');
+        res.status(200).json(expense);
     });
 };
