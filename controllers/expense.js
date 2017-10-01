@@ -52,10 +52,10 @@ exports.getExpenses = (req, res, next) => {
 };
 
 /**
-* POST /expense/add
+* POST /api/expenses/add
 * Add expense
 */
-exports.postExpense = (req, res) => {
+exports.addExpense = (req, res) => {
     req.assert('amount', 'Amount can not be blank').notEmpty();
     req.assert('date', 'Date can not be blank').notEmpty();
     req.assert('category', 'Category can not be blank').notEmpty();
@@ -86,6 +86,43 @@ exports.postExpense = (req, res) => {
 };
 
 /**
+* POST /api/expenses/edit
+* Edit expense
+*/
+exports.editExpense = (req, res) => {
+    req.assert('id', 'Id can not be blank').notEmpty();
+    req.assert('amount', 'Amount can not be blank').notEmpty();
+    req.assert('date', 'Date can not be blank').notEmpty();
+    req.assert('category', 'Category can not be blank').notEmpty();
+    req.assert('currency', 'Currency can not be blank').notEmpty();
+
+    const errors = req.validationErrors();
+
+    if (errors) {
+        return res.status(400).json({ error: errors });
+    }
+
+    Expense.findByIdAndUpdate(
+        req.body.id,
+        {
+            amount: req.body.amount,
+            date: moment(req.body.date, 'DD-MM-YYYY'),
+            category: req.body.category,
+            currency: mongoose.Types.ObjectId(req.body.currency),
+            comment: req.body.comment,
+            user_id: mongoose.Types.ObjectId(req.user.id)
+        },
+        (err) => {
+            if (err) {
+                res.status(500).json({ error: err });
+            }
+
+            res.status(200).json({ id: req.body.id, msg: 'Expense updated' });
+        }
+    );
+};
+
+/**
 * GET /api/expenses/delete
 * Delete expense
 */
@@ -103,6 +140,6 @@ exports.deleteExpense = (req, res) => {
             res.status(500).json({ error: err });
         }
 
-        res.status(200).json({ msg: 'Expense deleted' });
+        res.status(200).json({ id: req.query.id, msg: 'Expense deleted' });
     });
 };

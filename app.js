@@ -97,8 +97,9 @@ app.post('/api/signup', userController.postSignup);
 app.post('/api/contact', contactController.postContact);
 
 app.get('/api/expenses', userController.isAuthenticated, expenseController.getExpenses);
-app.post('/api/expenses/add', userController.isAuthenticated, expenseController.postExpense);
+app.post('/api/expenses/add', userController.isAuthenticated, expenseController.addExpense);
 app.get('/api/expenses/delete', userController.isAuthenticated, expenseController.deleteExpense);
+app.post('/api/expenses/edit', userController.isAuthenticated, expenseController.editExpense);
 
 app.post('/api/account/profile', userController.isAuthenticated, userController.postUpdateProfile);
 app.post('/api/account/password', userController.isAuthenticated, userController.postUpdatePassword);
