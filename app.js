@@ -98,6 +98,7 @@ app.post('/api/contact', contactController.postContact);
 
 app.get('/api/expenses', userController.isAuthenticated, expenseController.getExpenses);
 app.post('/api/expenses/add', userController.isAuthenticated, expenseController.postExpense);
+app.get('/api/expenses/delete', userController.isAuthenticated, expenseController.deleteExpense);
 
 app.post('/api/account/profile', userController.isAuthenticated, userController.postUpdateProfile);
 app.post('/api/account/password', userController.isAuthenticated, userController.postUpdatePassword);

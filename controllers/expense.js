@@ -84,3 +84,25 @@ exports.postExpense = (req, res) => {
         res.status(200).json(expense);
     });
 };
+
+/**
+* GET /api/expenses/delete
+* Delete expense
+*/
+exports.deleteExpense = (req, res) => {
+    req.checkQuery('id', 'Id can not be blank').notEmpty();
+
+    const errors = req.validationErrors();
+
+    if (errors) {
+        return res.status(400).json({ error: errors });
+    }
+
+    Expense.findByIdAndRemove(req.query.id, (err) => {
+        if (err) {
+            res.status(500).json({ error: err });
+        }
+
+        res.status(200).json({ msg: 'Expense deleted' });
+    });
+};
