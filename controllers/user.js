@@ -6,6 +6,7 @@ const passport = require('passport');
 const User = require('../models/User');
 const defaultCategories = require('../constants').categories;
 const mongoose = require('mongoose');
+const request = require('request');
 
 /**
 * Login Required middleware.
@@ -57,31 +58,59 @@ exports.postSignup = (req, res, next) => {
     req.assert('email', 'Email is not valid').isEmail();
     req.assert('password', 'Password must be at least 4 characters long').len(4);
     req.assert('confirmPassword', 'Passwords do not match').equals(req.body.password);
+    req.assert('recaptchaResponse', 'It seems you\'re a robot').notEmpty();
     req.sanitize('email').normalizeEmail({ remove_dots: false });
 
     const errors = req.validationErrors();
+    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
     if (errors) {
         return res.status(400).json({ error: errors });
     }
 
-    const user = new User({
-        email: req.body.email,
-        password: req.body.password,
-        categories: defaultCategories
-    });
+    request.post(
+        {
+            url: 'https://www.google.com/recaptcha/api/siteverify',
+            form: {
+                secret: process.env.RECAPTCHA_SECRET,
+                response: req.body.recaptchaResponse,
+                remoteip: ip
+            }
+        },
+        (error, response, body) => {
+            if (error || response.statusCode !== 200) {
+                console.log('Recaptcha error:', error);
+                return res.status(400).json({ error: { msg: 'Recaptcha error.' } });
+            }
 
-    User.findOne({ email: req.body.email }, (err, existingUser) => {
-        if (err) { return next(err); }
-        if (existingUser) {
-            return res.status(400).json({ error: { msg: 'Account with that email address already exists.' } });
+            const recaptcha = JSON.parse(body);
+
+            if (recaptcha.success) {
+                const user = new User({
+                    email: req.body.email,
+                    password: req.body.password,
+                    categories: defaultCategories
+                });
+
+                User.findOne({ email: req.body.email }, (err, existingUser) => {
+                    if (err) { return next(err); }
+                    if (existingUser) {
+                        return res.status(400).json({
+                            error: { msg: 'Account with that email address already exists.' }
+                        });
+                    }
+                    user.save((err, user) => {
+                        if (err) { return next(err); }
+
+                        res.status(200).json(user);
+                    });
+                });
+            } else {
+                console.log('Recaptcha error:', recaptcha);
+                return res.status(400).json({ error: { msg: 'Recaptcha error.' } });
+            }
         }
-        user.save((err, user) => {
-            if (err) { return next(err); }
-
-            res.status(200).json(user);
-        });
-    });
+    );
 };
 
 /**
